@@ -17,8 +17,8 @@ class AccountManager:
     def __init__(self):
         pass
 
-    @staticmethod
-    def valivan(ic: str):
+
+    def valivan(self, ic: str):
         """
     Calcula el dígito de control de un IBAN español.
 
@@ -28,9 +28,8 @@ class AccountManager:
     Returns:
         str: El dígito de control calculado.
         """
-        mr = re.compile(r"^ES[0-9]{22}")
-        res = mr.fullmatch(ic)
-        if not res:
+
+        if not self.check_regex(r"^ES[0-9]{22}", ic):
             raise AccountManagementException("Invalid IBAN format")
         iban = ic
         original_code = iban[2:4]
@@ -70,21 +69,25 @@ class AccountManager:
 
         return ic
 
+    @staticmethod
+    def check_regex(pattern, string):
+        """checks if string is in pattern"""
+        mr = re.compile(pattern)
+        res = mr.fullmatch(string)
+        return res
+
     def validate_concept(self, concept: str):
         """regular expression for checking the minimum and maximum length as well as
         the allowed characters and spaces restrictions
         there are other ways to check this"""
-        myregex = re.compile(r"^(?=^.{10,30}$)([a-zA-Z]+(\s[a-zA-Z]+)+)$")
-
-        res = myregex.fullmatch(concept)
-        if not res:
+        is_valid_concept = self.check_regex(r"^(?=^.{10,30}$)([a-zA-Z]+(\s[a-zA-Z]+)+)$", concept)
+        if not is_valid_concept:
             raise AccountManagementException ("Invalid concept format")
 
     def validate_transfer_date(self, t_d):
         """validates the arrival date format  using regex"""
-        mr = re.compile(r"^(([0-2]\d|3[0-1])\/(0\d|1[0-2])\/\d\d\d\d)$")
-        res = mr.fullmatch(t_d)
-        if not res:
+        is_valid_date = self.check_regex(r"^(([0-2]\d|3[0-1])\/(0\d|1[0-2])\/\d\d\d\d)$", t_d)
+        if not is_valid_date:
             raise AccountManagementException("Invalid date format")
 
         try:
@@ -110,9 +113,9 @@ class AccountManager:
         self.valivan(from_iban)
         self.valivan(to_iban)
         self.validate_concept(concept)
-        mr = re.compile(r"(ORDINARY|INMEDIATE|URGENT)")
-        res = mr.fullmatch(transfer_type)
-        if not res:
+
+        is_valid_transfer_type = self.check_regex(r"(ORDINARY|IMMEDIATE|URGENT)", transfer_type)
+        if not is_valid_transfer_type:
             raise AccountManagementException("Invalid transfer type")
         self.validate_transfer_date(date)
 
@@ -187,9 +190,8 @@ class AccountManager:
 
 
         deposit_iban = self.valivan(deposit_iban)
-        myregex = re.compile(r"^EUR [0-9]{4}\.[0-9]{2}")
-        res = myregex.fullmatch(deposit_amount)
-        if not res:
+        is_valid_deposit_amount = (r"^EUR [0-9]{4}\.[0-9]{2}", deposit_amount)
+        if not is_valid_deposit_amount:
             raise AccountManagementException("Error - Invalid deposit amount")
 
         d_a_f = float(deposit_amount[4:])
