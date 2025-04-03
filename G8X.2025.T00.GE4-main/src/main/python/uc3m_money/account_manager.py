@@ -18,7 +18,7 @@ class AccountManager:
         pass
 
 
-    def validate_iban(self, iban: str):
+    def validate_iban(self, iban_without_control_digits: str):
         """
     Calcula el dígito de control de un IBAN español.
 
@@ -29,8 +29,9 @@ class AccountManager:
         str: El dígito de control calculado.
         """
 
-        if not self.check_regex(r"^ES[0-9]{22}", iban):
+        if not self.check_regex(r"^ES[0-9]{22}", iban_without_control_digits):
             raise AccountManagementException("Invalid IBAN format")
+        iban = iban_without_control_digits
         original_code = iban[2:4]
         #replacing the control
         iban = iban[:2] + "00" + iban[4:]
@@ -66,7 +67,7 @@ class AccountManager:
             #print(control_digit)
             raise AccountManagementException("Invalid IBAN control digit")
 
-        return iban
+        return iban_without_control_digits
 
     @staticmethod
     def check_regex(pattern, string):
@@ -114,7 +115,7 @@ class AccountManager:
         self.validate_iban(to_iban)
         self.validate_concept(concept)
 
-        is_valid_transfer_type = self.check_regex(r"(ORDINARY|IMMEDIATE|URGENT)", transfer_type)
+        is_valid_transfer_type = self.check_regex(r"(ORDINARY|INMEDIATE|URGENT)", transfer_type)
         if not is_valid_transfer_type:
             raise AccountManagementException("Invalid transfer type")
         self.validate_transfer_date(date)
@@ -190,7 +191,7 @@ class AccountManager:
 
 
         deposit_iban = self.validate_iban(deposit_iban)
-        is_valid_deposit_amount = (r"^EUR [0-9]{4}\.[0-9]{2}", deposit_amount)
+        is_valid_deposit_amount = self.check_regex(r"^EUR [0-9]{4}\.[0-9]{2}", deposit_amount)
         if not is_valid_deposit_amount:
             raise AccountManagementException("Error - Invalid deposit amount")
 
